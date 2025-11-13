@@ -3,6 +3,10 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/app"
 
+if ! cargo leptos --version >/dev/null 2>&1; then
+  cargo install cargo-leptos --locked --version 0.7
+fi
+
 cargo leptos build --features csr
 
 if ! command -v wasm-bindgen &>/dev/null; then
