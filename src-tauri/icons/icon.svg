@@ -1,0 +1,25 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="sPath" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60a5fa" />
+      <stop offset="100%" stop-color="#14b8a6" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="20" stdDeviation="25" flood-color="#0f172a" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  <rect x="72" y="72" width="880" height="880" rx="220" fill="url(#bg)" />
+  <g filter="url(#shadow)">
+    <rect x="210" y="220" width="604" height="580" rx="110" fill="#f8fbff" />
+    <rect x="245" y="252" width="534" height="516" rx="82" fill="#ffffff" opacity="0.85" />
+    <path d="M720 220 L815 330 L815 220 Z" fill="#7dd3fc" opacity="0.9" />
+  </g>
+  <path d="M310 430 C380 360 470 340 540 400 C610 460 680 440 720 420 C690 520 610 560 550 600 C480 645 420 680 470 720 C540 775 640 720 700 665 L700 770 C640 810 560 840 470 820 C380 800 330 730 360 665 C390 600 470 560 530 520 C590 485 640 460 600 430 C540 390 450 420 390 470 Z" fill="url(#sPath)" opacity="0.9" />
+  <rect x="300" y="650" width="420" height="30" rx="15" fill="#14b8a6" opacity="0.55" />
+  <rect x="330" y="710" width="360" height="26" rx="13" fill="#38bdf8" opacity="0.45" />
+  <rect x="360" y="770" width="300" height="22" rx="11" fill="#38bdf8" opacity="0.35" />
+</svg>

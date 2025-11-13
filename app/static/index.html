@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>SmartDoc 桌面占位</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI";
+        margin: 0;
+        padding: 2rem;
+        background: #0f172a;
+        color: #e2e8f0;
+      }
+      .smartdoc-shell {
+        max-width: 1350px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .app-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .status-text {
+        font-size: 0.9rem;
+        color: #38bdf8;
+      }
+      .card {
+        background: rgba(15, 23, 42, 0.75);
+        border-radius: 18px;
+        padding: 1.75rem;
+        box-shadow: 0 25px 70px rgba(2, 6, 23, 0.65);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+      }
+      .field label {
+        font-size: 0.9rem;
+        margin-bottom: 0.35rem;
+        color: #94a3b8;
+      }
+      .field input {
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: #e2e8f0;
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        font-size: 1rem;
+        outline: none;
+        transition: border 0.2s ease;
+      }
+      .field textarea {
+        background: rgba(148, 163, 184, 0.15);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: #e2e8f0;
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        font-size: 0.95rem;
+        min-height: 120px;
+        resize: vertical;
+        outline: none;
+      }
+      .field input:focus {
+        border-color: #38bdf8;
+        box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+      }
+      button {
+        background: linear-gradient(90deg, #38bdf8, #818cf8);
+        border: none;
+        color: #0f172a;
+        padding: 0.85rem 1.7rem;
+        border-radius: 999px;
+        font-size: 1rem;
+        cursor: pointer;
+        margin-top: 0.5rem;
+        font-weight: 600;
+      }
+      pre {
+        background: rgba(2, 6, 23, 0.9);
+        padding: 1.2rem;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        overflow: auto;
+        font-size: 0.9rem;
+      }
+      ul.notes {
+        list-style: none;
+        padding-left: 0;
+        margin-top: 1rem;
+      }
+      ul.notes li {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        padding: 0.75rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.5rem;
+      }
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+      }
+      .media-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+      button.ghost {
+        background: transparent;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: #e2e8f0;
+        padding: 0.65rem 1.2rem;
+      }
+      .dashboard-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .dashboard-nav {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+      }
+      .dashboard-nav a {
+        text-decoration: none;
+      }
+      .dashboard-nav .nav-item {
+        width: 100%;
+        background: rgba(15, 23, 42, 0.4);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 16px;
+        padding: 0.9rem 1rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.35rem;
+        color: #e2e8f0;
+        cursor: pointer;
+        text-align: left;
+        transition: border 0.2s ease, transform 0.2s ease, background 0.2s ease;
+      }
+      .dashboard-nav .nav-item small {
+        color: #94a3b8;
+        font-size: 0.78rem;
+      }
+      .dashboard-nav .nav-item.active {
+        border-color: #38bdf8;
+        background: rgba(56, 189, 248, 0.15);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.35);
+      }
+      .content-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        min-height: 520px;
+      }
+      .page-card {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .page-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+      }
+      .stat-chip {
+        padding: 0.3rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(34, 197, 94, 0.2);
+        border: 1px solid rgba(34, 197, 94, 0.4);
+        font-size: 0.85rem;
+        color: #4ade80;
+      }
+      .stat-chip.offline {
+        background: rgba(248, 113, 113, 0.15);
+        border-color: rgba(248, 113, 113, 0.5);
+        color: #fca5a5;
+      }
+      .two-column {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1.25rem;
+      }
+      .list-card {
+        background: rgba(15, 23, 42, 0.5);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 16px;
+        padding: 1.1rem 1.25rem;
+      }
+      .list-card h3 {
+        margin: 0 0 0.75rem;
+        font-size: 1rem;
+        color: #e2e8f0;
+      }
+      .page-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+      .page-list li {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-size: 0.95rem;
+        color: #cbd5f5;
+      }
+      .page-list li span {
+        color: #94a3b8;
+        font-size: 0.8rem;
+      }
+      .inline-actions {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .inline-actions button {
+        margin-top: 0;
+      }
+      .muted {
+        color: #94a3b8;
+        font-size: 0.9rem;
+      }
+      .embed-card {
+        min-height: 600px;
+      }
+      .embedded-frame {
+        width: 100%;
+        min-height: 600px;
+        border: none;
+        border-radius: 18px;
+        background: rgba(15, 23, 42, 0.85);
+      }
+    </style>
+  </head>
+  <body>
+    <noscript>SmartDoc 需要启用 JavaScript。</noscript>
+    <script type="module">
+      import init from "./pkg/smartdoc_app_frontend.js";
+      init();
+    </script>
+  </body>
+</html>

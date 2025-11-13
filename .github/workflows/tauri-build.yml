@@ -1,0 +1,61 @@
+name: Tauri Bundles
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, ubuntu-22.04, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CARGO_INCREMENTAL: 0
+      RUSTFLAGS: -D warnings
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install system deps (Linux)
+        if: matrix.os == 'ubuntu-22.04'
+        run: sudo apt-get update && sudo apt-get install -y libgtk-3-dev libayatana-appindicator3-dev libsoup-3.0-dev libwebkit2gtk-4.1-dev patchelf curl
+
+      - name: Install system deps (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install -y visualstudio2022buildtools visualstudio2022-workload-vctools wixtoolset
+
+      - name: Install system deps (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew update
+          brew install create-dmg || true
+
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --locked
+
+      - name: Build bundles
+        run: cargo tauri build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-bundle-${{ matrix.os }}
+          path: src-tauri/target/release/bundle/**/*
+          if-no-files-found: error
