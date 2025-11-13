@@ -1,0 +1,32 @@
+[package]
+name = "smartdoc-app-frontend"
+version = "0.1.0"
+edition = "2021"
+
+description = "Leptos UI for SmartDoc"
+authors = ["SmartDoc Team"]
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+leptos = { version = "0.7", features = ["csr"] }
+leptos_meta = "0.7"
+leptos_router = "0.7"
+wasm-bindgen = "0.2"
+console_error_panic_hook = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+wasm-bindgen-futures = "0.4"
+js-sys = "0.3"
+serde-wasm-bindgen = "0.6"
+gloo-net = "0.6"
+
+[features]
+default = ["csr"]
+csr = []
+
+[package.metadata.leptos]
+site-root = "dist"
+site-pkg-dir = "pkg"

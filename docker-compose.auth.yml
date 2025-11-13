@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  auth-db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: smartdoc
+      POSTGRES_PASSWORD: smartdoc
+      POSTGRES_DB: smartdoc
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    ports:
+      - "55432:5432"
+
+  auth-api:
+    build: ./services/api
+    environment:
+      DOCUMENT_SERVER_URL: ${DOCUMENT_SERVER_URL:-http://10.18.65.129:8085/example/}
+      DOCUMENT_SERVER_SECRET: ${DOCUMENT_SERVER_SECRET:-smartdoc-local-secret}
+      JWT_ISSUER: ${JWT_ISSUER:-smartdoc}
+      JWT_EXPIRES_SECONDS: ${JWT_EXPIRES_SECONDS:-3600}
+      DATABASE_URL: postgresql+psycopg2://smartdoc:smartdoc@auth-db:5432/smartdoc
+    ports:
+      - "9100:9100"
+    depends_on:
+      - auth-db
+
+volumes:
+  auth_db_data:
