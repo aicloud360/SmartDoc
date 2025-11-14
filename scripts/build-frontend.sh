@@ -7,6 +7,9 @@ if ! cargo leptos --version >/dev/null 2>&1; then
   cargo install cargo-leptos --locked
 fi
 
+# Ensure wasm32-unknown-unknown target is installed for WebAssembly compilation
+rustup target add wasm32-unknown-unknown
+
 cargo leptos build --features csr
 
 if ! command -v wasm-bindgen &>/dev/null; then
