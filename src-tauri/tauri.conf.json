@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "identifier": "com.smartdoc.desktop",
   "build": {
-    "beforeBuildCommand": "scripts/build-frontend.sh",
-    "beforeDevCommand": "scripts/build-frontend.sh",
+    "beforeBuildCommand": "bash scripts/build-frontend.sh",
+    "beforeDevCommand": "bash scripts/build-frontend.sh",
     "frontendDist": "../app/dist"
   },
   "app": {
