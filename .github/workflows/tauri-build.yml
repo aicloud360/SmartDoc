@@ -50,9 +50,6 @@ jobs:
       - name: Install Tauri CLI
         run: cargo install tauri-cli --locked
 
-      - name: Install cargo-leptos
-        run: cargo install cargo-leptos --locked --version ^0.7
-
       - name: Build bundles
         run: cargo tauri build
 
