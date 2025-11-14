@@ -4,7 +4,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT/app"
 
 if ! cargo leptos --version >/dev/null 2>&1; then
-  cargo install cargo-leptos --locked --version 0.7
+  cargo install cargo-leptos --locked
 fi
 
 cargo leptos build --features csr
