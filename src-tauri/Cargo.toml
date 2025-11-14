@@ -10,11 +10,11 @@ license = "MIT"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0"
-tauri = { version = "2.0", features = [] }
+tauri = { version = "2.0.0", features = [] }
 anyhow = "1.0"
 url = "2.5"
 local-ip-address = "0.5"
 get_if_addrs = "0.5"
 
 [build-dependencies]
-tauri-build = { version = "2", features = [] }
+tauri-build = { version = "2.0.0", features = [] }
