@@ -48,10 +48,10 @@ jobs:
           brew install create-dmg || true
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --locked
+        run: cargo install tauri-cli --locked --force
 
       - name: Install cargo-leptos
-        run: cargo install cargo-leptos --locked
+        run: cargo install cargo-leptos --locked --force
 
       - name: Build bundles
         run: cargo tauri build
