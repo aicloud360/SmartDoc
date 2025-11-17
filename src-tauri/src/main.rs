@@ -10,6 +10,7 @@ use std::time::Duration;
 use tauri::menu::MenuBuilder;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Listener, Manager, RunEvent, WindowEvent};
+use tauri_plugin_single_instance::init as single_instance;
 
 const DOCUMENT_SERVER_URL: &str = "http://10.18.65.129:8085/example/";
 static FRONTEND_READY: AtomicBool = AtomicBool::new(false);
@@ -151,6 +152,10 @@ fn prevent_close_to_tray(window: &tauri::Window, event: &WindowEvent) {
 fn main() {
     let context = tauri::generate_context!();
     tauri::Builder::default()
+        .plugin(single_instance(|app, _, _| {
+            // 聚焦已有窗口，防止重复实例。
+            reveal_main_window(app);
+        }))
         .invoke_handler(tauri::generate_handler![
             open_document_demo,
             health_check,
@@ -161,15 +166,13 @@ fn main() {
             // 预留：后续在此读取配置文件或初始化与 NAS 的连接。
             app.emit("smartdoc://boot", DOCUMENT_SERVER_URL)?;
             if let Some(window) = app.get_webview_window("main") {
-                #[cfg(target_os = "windows")]
-                {
-                    window.hide()?;
-                }
-                #[cfg(not(target_os = "windows"))]
-                {
-                    // macOS/Linux 保持初始可见，加快显示速度。
-                    window.show()?;
-                }
+                window.unmaximize()?;
+                window.set_size(tauri::Size::Logical(tauri::LogicalSize {
+                    width: 1280.0,
+                    height: 800.0,
+                }))?;
+                window.center()?;
+                window.show()?;
             }
             let app_handle = app.handle();
             let listener_handle = app_handle.clone();

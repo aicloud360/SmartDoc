@@ -56,18 +56,21 @@ jobs:
           brew install create-dmg || true
 
       - name: Install Tauri CLI
+        shell: bash
         run: |
           if ! command -v cargo-tauri >/dev/null 2>&1; then
             cargo install tauri-cli --locked
           fi
 
       - name: Install cargo-leptos
+        shell: bash
         run: |
           if ! command -v cargo-leptos >/dev/null 2>&1; then
             cargo install cargo-leptos --locked
           fi
 
       - name: Install wasm-bindgen-cli
+        shell: bash
         run: |
           if ! command -v wasm-bindgen >/dev/null 2>&1; then
             cargo install wasm-bindgen-cli --version 0.2.105 --locked

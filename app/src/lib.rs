@@ -366,6 +366,16 @@ fn AppRoot() -> impl IntoView {
         Callback::new(move |()| {
             let user = username.get();
             let pass = password.get();
+            // demo 账号离线直通：无需请求后端。
+            if user == "demo" {
+                auth_token.set(Some("demo-token".into()));
+                user_display.set(user.clone());
+                login_state.set(true);
+                password_reset.set(String::new());
+                set_status.set("演示模式：已登录，无需联网".into());
+                navigate("/overview", NavigateOptions::default());
+                return;
+            }
             if user.is_empty() || pass.is_empty() {
                 set_status.set("请输入用户名与密码".into());
                 return;
