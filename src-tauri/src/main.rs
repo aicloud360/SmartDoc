@@ -5,8 +5,7 @@ use local_ip_address::local_ip;
 use serde::Serialize;
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::thread;
-use std::time::Duration;
+// thread module is used elsewhere; keep import if future background tasks are added.
 use tauri::menu::MenuBuilder;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Listener, Manager, RunEvent, WindowEvent};
@@ -14,6 +13,7 @@ use tauri_plugin_single_instance::init as single_instance;
 
 const DOCUMENT_SERVER_URL: &str = "http://10.18.65.129:8085/example/";
 static FRONTEND_READY: AtomicBool = AtomicBool::new(false);
+static USER_HIDDEN: AtomicBool = AtomicBool::new(false);
 
 #[derive(Serialize, Debug)]
 struct DocumentLink {
@@ -80,7 +80,9 @@ fn check_lan_access() -> NetworkGate {
 #[tauri::command]
 fn frontend_ready(app: AppHandle) -> Result<(), String> {
     FRONTEND_READY.store(true, Ordering::SeqCst);
-    reveal_main_window(&app);
+    if !USER_HIDDEN.load(Ordering::SeqCst) {
+        reveal_main_window(&app);
+    }
     Ok(())
 }
 
@@ -89,6 +91,7 @@ fn reveal_main_window(app: &AppHandle) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+        USER_HIDDEN.store(false, Ordering::SeqCst);
     }
 }
 
@@ -132,20 +135,11 @@ fn init_tray(app: &tauri::App) -> tauri::Result<()> {
     Ok(())
 }
 
-fn schedule_startup_guard(app_handle: &AppHandle) {
-    let handle = app_handle.clone();
-    thread::spawn(move || {
-        thread::sleep(Duration::from_secs(5));
-        if !FRONTEND_READY.load(Ordering::SeqCst) {
-            reveal_main_window(&handle);
-        }
-    });
-}
-
 fn prevent_close_to_tray(window: &tauri::Window, event: &WindowEvent) {
     if let WindowEvent::CloseRequested { api, .. } = event {
         api.prevent_close();
         let _ = window.hide();
+        USER_HIDDEN.store(true, Ordering::SeqCst);
     }
 }
 
@@ -172,7 +166,15 @@ fn main() {
                     height: 800.0,
                 }))?;
                 window.center()?;
-                window.show()?;
+                // Windows：启动阶段先隐藏，待前端 ready 再显示，避免白屏闪现。
+                #[cfg(target_os = "windows")]
+                {
+                    window.hide()?;
+                }
+                #[cfg(not(target_os = "windows"))]
+                {
+                    window.show()?;
+                }
             }
             let app_handle = app.handle();
             let listener_handle = app_handle.clone();
@@ -180,15 +182,7 @@ fn main() {
                 FRONTEND_READY.store(true, Ordering::SeqCst);
                 reveal_main_window(&listener_handle);
             });
-            let activate_handle = app_handle.clone();
-            // 处理 Dock 图标/任务栏点击重新激活应用的场景，重新展示主窗口。
-            activate_handle
-                .clone()
-                .listen_any("tauri://activate", move |_| {
-                    reveal_main_window(&activate_handle);
-                });
             init_tray(app)?;
-            schedule_startup_guard(app.handle());
             Ok(())
         })
         .on_window_event(prevent_close_to_tray)
@@ -196,11 +190,9 @@ fn main() {
         .expect("error while building SmartDoc Tauri application")
         .run(|app_handle, event| match event {
             #[cfg(target_os = "macos")]
-            RunEvent::Reopen { .. } => reveal_main_window(app_handle),
-            RunEvent::Resumed | RunEvent::Ready => {
-                if FRONTEND_READY.load(Ordering::SeqCst) {
-                    reveal_main_window(app_handle);
-                }
+            RunEvent::Reopen { .. } => {
+                USER_HIDDEN.store(false, Ordering::SeqCst);
+                reveal_main_window(app_handle);
             }
             _ => {}
         });
