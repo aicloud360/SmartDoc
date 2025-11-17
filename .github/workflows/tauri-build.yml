@@ -2,7 +2,10 @@ name: Tauri Bundles
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+    tags:
+      - "v*"
   workflow_dispatch:
 
 jobs:
@@ -22,15 +25,20 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo registry
+      - name: Cache cargo bin installs
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo/bin
-            ~/.cargo/registry
-            ~/.cargo/git
-            src-tauri/target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          path: ~/.cargo/bin
+          key: ${{ runner.os }}-cargo-bins-v1
+          restore-keys: |
+            ${{ runner.os }}-cargo-bins-
+
+      - name: Cache Rust build artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            src-tauri -> target
+            app -> target/front
 
       - name: Install system deps (Linux)
         if: matrix.os == 'ubuntu-22.04'
@@ -48,10 +56,22 @@ jobs:
           brew install create-dmg || true
 
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --locked --force
+        run: |
+          if ! command -v cargo-tauri >/dev/null 2>&1; then
+            cargo install tauri-cli --locked
+          fi
 
       - name: Install cargo-leptos
-        run: cargo install cargo-leptos --locked --force
+        run: |
+          if ! command -v cargo-leptos >/dev/null 2>&1; then
+            cargo install cargo-leptos --locked
+          fi
+
+      - name: Install wasm-bindgen-cli
+        run: |
+          if ! command -v wasm-bindgen >/dev/null 2>&1; then
+            cargo install wasm-bindgen-cli --version 0.2.105 --locked
+          fi
 
       - name: Build bundles
         run: cargo tauri build
