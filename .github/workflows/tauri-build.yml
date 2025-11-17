@@ -48,6 +48,7 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           choco install -y visualstudio2022buildtools visualstudio2022-workload-vctools wixtoolset
+          choco install -y strawberryperl nasm
 
       - name: Install system deps (macOS)
         if: matrix.os == 'macos-latest'
