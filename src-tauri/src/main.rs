@@ -8,7 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 // thread module is used elsewhere; keep import if future background tasks are added.
 use tauri::menu::MenuBuilder;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
-use tauri::{AppHandle, Emitter, Listener, Manager, RunEvent, WindowEvent};
+use tauri::{AppHandle, Emitter, Listener, Manager, WindowEvent};
 use tauri_plugin_single_instance::init as single_instance;
 
 const DOCUMENT_SERVER_URL: &str = "http://10.18.65.129:8085/example/";
@@ -188,12 +188,5 @@ fn main() {
         .on_window_event(prevent_close_to_tray)
         .build(context)
         .expect("error while building SmartDoc Tauri application")
-        .run(|app_handle, event| match event {
-            #[cfg(target_os = "macos")]
-            RunEvent::Reopen { .. } => {
-                USER_HIDDEN.store(false, Ordering::SeqCst);
-                reveal_main_window(app_handle);
-            }
-            _ => {}
-        });
+        .run(|_app_handle, _event| {});
 }
