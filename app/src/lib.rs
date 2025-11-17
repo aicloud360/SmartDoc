@@ -629,4 +629,21 @@ pub fn App() -> impl IntoView {
 pub fn hydrate() {
     console_error_panic_hook::set_once();
     mount_to_body(App);
+    // 向 Tauri 通知前端已加载完毕，用于避免启动白屏并显示主窗口。
+    if let Ok(global) = js_sys::global().dyn_into::<js_sys::Object>() {
+        let tauri = js_sys::Reflect::get(&global, &JsValue::from_str("__TAURI__"));
+        if let Ok(tauri_obj) = tauri {
+            if let Ok(event_mod) = js_sys::Reflect::get(&tauri_obj, &JsValue::from_str("event")) {
+                if let Ok(emit_fn) = js_sys::Reflect::get(&event_mod, &JsValue::from_str("emit")) {
+                    if let Ok(emit_fn) = emit_fn.dyn_into::<Function>() {
+                        let _ = emit_fn.call2(
+                            &event_mod,
+                            &JsValue::from_str("frontend_ready"),
+                            &JsValue::NULL,
+                        );
+                    }
+                }
+            }
+        }
+    }
 }
