@@ -18,6 +18,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Prepare frontend stub
+        run: |
+          mkdir -p app/dist
+          echo "<!doctype html><title>SmartDoc</title>" > app/dist/index.html
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
