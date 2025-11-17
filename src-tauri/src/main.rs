@@ -93,7 +93,7 @@ fn reveal_main_window(app: &AppHandle) {
 
 fn init_tray(app: &tauri::App) -> tauri::Result<()> {
     let handle = app.handle();
-    let tray_menu = MenuBuilder::<_, AppHandle>::new(&handle)
+    let tray_menu = MenuBuilder::<_, AppHandle>::new(handle)
         .text("show_main", "显示 SmartDoc")
         .separator()
         .text("quit_app", "退出 SmartDoc")
@@ -185,18 +185,18 @@ fn main() {
                     reveal_main_window(&activate_handle);
                 });
             init_tray(app)?;
-            schedule_startup_guard(&app.handle());
+            schedule_startup_guard(app.handle());
             Ok(())
         })
-        .on_window_event(|window, event| prevent_close_to_tray(window, event))
+        .on_window_event(prevent_close_to_tray)
         .build(context)
         .expect("error while building SmartDoc Tauri application")
         .run(|app_handle, event| match event {
             #[cfg(target_os = "macos")]
-            RunEvent::Reopen { .. } => reveal_main_window(&app_handle),
+            RunEvent::Reopen { .. } => reveal_main_window(app_handle),
             RunEvent::Resumed | RunEvent::Ready => {
                 if FRONTEND_READY.load(Ordering::SeqCst) {
-                    reveal_main_window(&app_handle);
+                    reveal_main_window(app_handle);
                 }
             }
             _ => {}
