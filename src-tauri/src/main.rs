@@ -99,7 +99,9 @@ fn init_tray(app: &tauri::App) -> tauri::Result<()> {
         .text("quit_app", "退出 SmartDoc")
         .build()?;
 
-    let mut builder = TrayIconBuilder::new().menu(&tray_menu).tooltip("SmartDoc 已在后台运行");
+    let mut builder = TrayIconBuilder::new()
+        .menu(&tray_menu)
+        .tooltip("SmartDoc 已在后台运行");
     if let Some(icon) = app.default_window_icon().cloned() {
         builder = builder.icon(icon);
     }
@@ -177,9 +179,11 @@ fn main() {
             });
             let activate_handle = app_handle.clone();
             // 处理 Dock 图标/任务栏点击重新激活应用的场景，重新展示主窗口。
-            activate_handle.clone().listen_any("tauri://activate", move |_| {
-                reveal_main_window(&activate_handle);
-            });
+            activate_handle
+                .clone()
+                .listen_any("tauri://activate", move |_| {
+                    reveal_main_window(&activate_handle);
+                });
             init_tray(app)?;
             schedule_startup_guard(&app.handle());
             Ok(())
