@@ -186,21 +186,35 @@ fn main() {
             if let Some(window) = app.get_webview_window("main") {
                 window.unmaximize()?;
                 if let Some(monitor) = window.current_monitor()? {
-                    let logical: tauri::LogicalSize<f64> =
-                        monitor.size().to_logical(monitor.scale_factor());
-                    let target_w = logical.width.clamp(960.0, 1280.0);
-                    let target_h = logical.height.clamp(640.0, 800.0);
+                    let scale = monitor.scale_factor();
+                    let work_area = monitor.work_area();
+                    let logical_size: tauri::LogicalSize<f64> = work_area.size.to_logical(scale);
+                    // 取工作区 90% 作为上限，再压缩至 700-1164 / 500-700 范围。
+                    let max_w = logical_size.width * 0.9;
+                    let max_h = logical_size.height * 0.9;
+                    let target_w = max_w.clamp(700.0, 1164.0);
+                    let target_h = max_h.clamp(500.0, 700.0);
                     window.set_size(tauri::Size::Logical(tauri::LogicalSize {
                         width: target_w,
                         height: target_h,
                     }))?;
+
+                    let logical_origin: tauri::LogicalPosition<f64> =
+                        work_area.position.to_logical(scale);
+                    let horizontal_padding = ((logical_size.width - target_w) / 2.0).max(0.0);
+                    let top_margin = 40.0;
+                    let position = tauri::LogicalPosition {
+                        x: logical_origin.x + horizontal_padding,
+                        y: logical_origin.y + top_margin,
+                    };
+                    window.set_position(tauri::Position::Logical(position))?;
                 } else {
                     window.set_size(tauri::Size::Logical(tauri::LogicalSize {
-                        width: 1280.0,
-                        height: 800.0,
+                        width: 900.0,
+                        height: 560.0,
                     }))?;
+                    window.center()?;
                 }
-                window.center()?;
                 // 统一从配置中可见性为 false，首次显示交由前端 ready 事件触发。
                 #[cfg(not(target_os = "windows"))]
                 {
