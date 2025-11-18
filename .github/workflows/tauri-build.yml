@@ -61,26 +61,53 @@ jobs:
           brew update
           brew install create-dmg || true
 
-      - name: Install Tauri CLI
+      - name: Install Tauri CLI (Unix)
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           if ! command -v cargo-tauri >/dev/null 2>&1; then
             cargo install tauri-cli --locked
           fi
 
-      - name: Install cargo-leptos
+      - name: Install Tauri CLI (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command cargo-tauri -ErrorAction SilentlyContinue)) {
+            cargo install tauri-cli --locked
+          }
+
+      - name: Install cargo-leptos (Unix)
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           if ! command -v cargo-leptos >/dev/null 2>&1; then
             cargo install cargo-leptos --locked
           fi
 
-      - name: Install wasm-bindgen-cli
+      - name: Install cargo-leptos (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command cargo-leptos -ErrorAction SilentlyContinue)) {
+            cargo install cargo-leptos --locked
+          }
+
+      - name: Install wasm-bindgen-cli (Unix)
+        if: matrix.os != 'windows-latest'
         shell: bash
         run: |
           if ! command -v wasm-bindgen >/dev/null 2>&1; then
             cargo install wasm-bindgen-cli --version 0.2.105 --locked
           fi
+
+      - name: Install wasm-bindgen-cli (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          if (-not (Get-Command wasm-bindgen -ErrorAction SilentlyContinue)) {
+            cargo install wasm-bindgen-cli --version 0.2.105 --locked
+          }
 
       - name: Build bundles
         run: cargo tauri build
