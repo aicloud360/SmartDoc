@@ -10,9 +10,6 @@
   },
   "app": {
     "withGlobalTauri": true,
-    "security": {
-      "csp": "default-src 'self'; navigate-to 'self' tauri:; style-src 'self' 'unsafe-inline'; script-src 'self'"
-    },
     "windows": [
       {
         "label": "main",
