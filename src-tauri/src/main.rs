@@ -6,7 +6,7 @@ use serde::Serialize;
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
 #[cfg(target_os = "windows")]
-use std::time::Duration;
+use std::{thread, time::Duration};
 // thread module is used elsewhere; keep import if future background tasks are added.
 use tauri::menu::MenuBuilder;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
@@ -218,8 +218,8 @@ fn main() {
             {
                 // Windows 场景下，若前端事件滞后，2s 上限兜底展示窗口，避免仅托盘无窗。
                 let fallback_handle = app_handle.clone();
-                tauri::async_runtime::spawn(async move {
-                    tauri::async_runtime::sleep(Duration::from_millis(2000)).await;
+                thread::spawn(move || {
+                    thread::sleep(Duration::from_millis(2000));
                     if !FRONTEND_READY.load(Ordering::SeqCst) {
                         reveal_main_window(&fallback_handle);
                     }
