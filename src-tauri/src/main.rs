@@ -232,7 +232,7 @@ fn main() {
             if payload.event() == PageLoadEvent::Finished {
                 FRONTEND_READY.store(true, Ordering::SeqCst);
                 if !USER_HIDDEN.load(Ordering::SeqCst) {
-                    reveal_main_window(&webview.app_handle());
+                    reveal_main_window(webview.app_handle());
                 }
             }
         })
