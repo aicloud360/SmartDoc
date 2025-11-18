@@ -5,9 +5,12 @@ use local_ip_address::local_ip;
 use serde::Serialize;
 use std::net::IpAddr;
 use std::sync::atomic::{AtomicBool, Ordering};
+#[cfg(target_os = "windows")]
+use std::time::Duration;
 // thread module is used elsewhere; keep import if future background tasks are added.
 use tauri::menu::MenuBuilder;
 use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
+use tauri::webview::PageLoadEvent;
 use tauri::{AppHandle, Emitter, Listener, Manager, WindowEvent};
 use tauri_plugin_single_instance::init as single_instance;
 
@@ -182,10 +185,21 @@ fn main() {
             app.emit("smartdoc://boot", DOCUMENT_SERVER_URL)?;
             if let Some(window) = app.get_webview_window("main") {
                 window.unmaximize()?;
-                window.set_size(tauri::Size::Logical(tauri::LogicalSize {
-                    width: 1280.0,
-                    height: 800.0,
-                }))?;
+                if let Some(monitor) = window.current_monitor()? {
+                    let logical: tauri::LogicalSize<f64> =
+                        monitor.size().to_logical(monitor.scale_factor());
+                    let target_w = logical.width.clamp(960.0, 1280.0);
+                    let target_h = logical.height.clamp(640.0, 800.0);
+                    window.set_size(tauri::Size::Logical(tauri::LogicalSize {
+                        width: target_w,
+                        height: target_h,
+                    }))?;
+                } else {
+                    window.set_size(tauri::Size::Logical(tauri::LogicalSize {
+                        width: 1280.0,
+                        height: 800.0,
+                    }))?;
+                }
                 window.center()?;
                 // 统一从配置中可见性为 false，首次显示交由前端 ready 事件触发。
                 #[cfg(not(target_os = "windows"))]
@@ -200,8 +214,27 @@ fn main() {
                 FRONTEND_READY.store(true, Ordering::SeqCst);
                 reveal_main_window(&listener_handle);
             });
+            #[cfg(target_os = "windows")]
+            {
+                // Windows 场景下，若前端事件滞后，2s 上限兜底展示窗口，避免仅托盘无窗。
+                let fallback_handle = app_handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    tauri::async_runtime::sleep(Duration::from_millis(2000)).await;
+                    if !FRONTEND_READY.load(Ordering::SeqCst) {
+                        reveal_main_window(&fallback_handle);
+                    }
+                });
+            }
             init_tray(app)?;
             Ok(())
+        })
+        .on_page_load(|webview, payload| {
+            if payload.event() == PageLoadEvent::Finished {
+                FRONTEND_READY.store(true, Ordering::SeqCst);
+                if !USER_HIDDEN.load(Ordering::SeqCst) {
+                    reveal_main_window(webview.app_handle());
+                }
+            }
         })
         .on_window_event(prevent_close_to_tray)
         .build(context)
