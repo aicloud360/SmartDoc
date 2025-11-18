@@ -316,7 +316,8 @@ fn EmbeddedPage(
                 class="embedded-frame"
                 title=title
                 src=url
-                allow="clipboard-read; clipboard-write; fullscreen"
+                allow="clipboard-read; clipboard-write; fullscreen; popups; popups-to-escape-sandbox"
+                sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation allow-downloads"
             ></iframe>
         </section>
     }
