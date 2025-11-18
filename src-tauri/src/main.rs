@@ -87,12 +87,33 @@ fn frontend_ready(app: AppHandle) -> Result<(), String> {
 }
 
 fn reveal_main_window(app: &AppHandle) {
-    if let Some(window) = app.get_webview_window("main") {
-        let _ = window.unminimize();
-        let _ = window.show();
-        let _ = window.set_focus();
-        USER_HIDDEN.store(false, Ordering::SeqCst);
-    }
+    // 确保所有与窗口相关的调用在主线程执行，避免 Win 平台上偶发无法恢复的问题。
+    let app_handle = app.clone();
+    let handle_for_closure = app_handle.clone();
+    let _ = app_handle.run_on_main_thread(move || {
+        if let Some(window) = handle_for_closure.get_webview_window("main") {
+            let _ = window.unminimize();
+            let _ = window.show();
+            let _ = window.set_focus();
+            #[cfg(target_os = "windows")]
+            {
+                // 通过临时置顶确保从托盘恢复时一定在前台显示。
+                let _ = window.set_always_on_top(true);
+                let _ = window.set_always_on_top(false);
+            }
+            USER_HIDDEN.store(false, Ordering::SeqCst);
+        } else if let Some(conf) = handle_for_closure.config().app.windows.first().cloned() {
+            // 极端情况：窗口被销毁时按配置重建。
+            if let Ok(builder) =
+                tauri::WebviewWindowBuilder::from_config(&handle_for_closure, &conf)
+            {
+                if let Ok(new_win) = builder.build() {
+                    let _ = new_win.set_focus();
+                    USER_HIDDEN.store(false, Ordering::SeqCst);
+                }
+            }
+        }
+    });
 }
 
 fn init_tray(app: &tauri::App) -> tauri::Result<()> {
@@ -166,13 +187,10 @@ fn main() {
                     height: 800.0,
                 }))?;
                 window.center()?;
-                // Windows：启动阶段先隐藏，待前端 ready 再显示，避免白屏闪现。
-                #[cfg(target_os = "windows")]
-                {
-                    window.hide()?;
-                }
+                // 统一从配置中可见性为 false，首次显示交由前端 ready 事件触发。
                 #[cfg(not(target_os = "windows"))]
                 {
+                    // Linux/macOS 直接显示，减少用户等待。
                     window.show()?;
                 }
             }
@@ -188,5 +206,16 @@ fn main() {
         .on_window_event(prevent_close_to_tray)
         .build(context)
         .expect("error while building SmartDoc Tauri application")
-        .run(|_app_handle, _event| {});
+        .run(|app_handle, event| {
+            #[cfg(target_os = "macos")]
+            if let tauri::RunEvent::Reopen {
+                has_visible_windows,
+                ..
+            } = event
+            {
+                if !has_visible_windows || USER_HIDDEN.load(Ordering::SeqCst) {
+                    reveal_main_window(app_handle);
+                }
+            }
+        });
 }
