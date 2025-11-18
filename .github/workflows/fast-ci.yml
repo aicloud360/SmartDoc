@@ -2,9 +2,11 @@ name: Fast CI
 
 on:
   pull_request:
+    branches:
+      - develop
   push:
-    branches-ignore:
-      - main
+    branches:
+      - develop
 
 permissions:
   contents: read

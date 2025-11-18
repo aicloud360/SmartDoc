@@ -217,5 +217,7 @@ fn main() {
                     reveal_main_window(app_handle);
                 }
             }
+            _ = app_handle;
+            _ = event;
         });
 }
