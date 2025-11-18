@@ -188,8 +188,8 @@ fn main() {
                 if let Some(monitor) = window.current_monitor()? {
                     let logical: tauri::LogicalSize<f64> =
                         monitor.size().to_logical(monitor.scale_factor());
-                    let target_w = logical.width.min(1280.0).max(960.0);
-                    let target_h = logical.height.min(800.0).max(640.0);
+                    let target_w = logical.width.clamp(960.0, 1280.0);
+                    let target_h = logical.height.clamp(640.0, 800.0);
                     window.set_size(tauri::Size::Logical(tauri::LogicalSize {
                         width: target_w,
                         height: target_h,
