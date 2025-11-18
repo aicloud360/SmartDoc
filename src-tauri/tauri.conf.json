@@ -10,12 +10,13 @@
   },
   "app": {
     "withGlobalTauri": true,
+    "security": {
+      "csp": "default-src 'self'; navigate-to 'self' tauri:; style-src 'self' 'unsafe-inline'; script-src 'self'"
+    },
     "windows": [
       {
         "label": "main",
         "title": "SmartDoc",
-        "width": 1280,
-        "height": 800,
         "resizable": true,
         "visible": false
       }
